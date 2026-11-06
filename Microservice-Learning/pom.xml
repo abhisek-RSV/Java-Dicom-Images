@@ -23,6 +23,8 @@
         <module>user-service</module>
         <!-- Phase 2 -->
         <module>order-service</module>
+                <!-- Phase 3 -->
+        <module>discovery-server</module>
     </modules>
 
     <properties>

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * We only declare the interface - Feign generates the HTTP code at runtime.
  * The URL is hardcoded for now; Phase 3 (Eureka) will replace it with the service name.
  */
-@FeignClient(name = "book-service", url = "${clients.book-service.url}")
+@FeignClient(name = "book-service")
 public interface BookClient {
 
     @GetMapping("/books/{id}")
