@@ -22,10 +22,10 @@ management:
       exposure:
         include: health,info
 
-# Where the other services live (used by the Feign clients).
-# Hardcoded on purpose - Phase 3 (Eureka) removes these URLs.
-clients:
-  book-service:
-    url: http://localhost:8081
-  user-service:
-    url: http://localhost:8082
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
