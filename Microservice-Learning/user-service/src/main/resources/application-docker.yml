@@ -1,0 +1,13 @@
+# Loaded ONLY when the 'docker' profile is active (SPRING_PROFILES_ACTIVE=docker).
+# Values here override application.yml -> H2 is replaced by PostgreSQL.
+#
+# "user-db" is the Postgres container name from docker-compose.yml;
+# inside the Docker network, container names work as hostnames.
+spring:
+  datasource:
+    url: jdbc:postgresql://user-db:5432/userdb
+    username: user_app
+    password: user_pass
+  h2:
+    console:
+      enabled: false

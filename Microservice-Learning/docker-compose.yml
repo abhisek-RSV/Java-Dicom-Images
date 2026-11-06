@@ -1,40 +1,115 @@
 services:
 
+  # ---------------------------------------------------------------
+  # Databases - one PostgreSQL per service (database-per-service)
+  # Ports 5433-5435 are published only so you can connect from your PC
+  # (IntelliJ Database tool / DBeaver / psql).
+  # ---------------------------------------------------------------
+  book-db:
+    image: postgres:17
+    container_name: book-db
+    environment:
+      POSTGRES_DB: bookdb
+      POSTGRES_USER: book_app
+      POSTGRES_PASSWORD: book_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - book-data:/var/lib/postgresql/data     # data survives restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U book_app -d bookdb"]
+      interval: 5s
+      retries: 10
+
+  user-db:
+    image: postgres:17
+    container_name: user-db
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: user_app
+      POSTGRES_PASSWORD: user_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - user-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_app -d userdb"]
+      interval: 5s
+      retries: 10
+
+  order-db:
+    image: postgres:17
+    container_name: order-db
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: order_app
+      POSTGRES_PASSWORD: order_pass
+    ports:
+      - "5435:5432"
+    volumes:
+      - order-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_app -d orderdb"]
+      interval: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------
   discovery-server:
     build: ./discovery-server
     container_name: discovery-server
     ports:
       - "8761:8761"                  # Eureka dashboard reachable from your browser
 
+  # ---------------------------------------------------------------
+  # Business services
+  # SPRING_PROFILES_ACTIVE=docker -> loads application-docker.yml
+  # (PostgreSQL instead of H2)
+  # ---------------------------------------------------------------
   book-service:
     build: ./book-service
     container_name: book-service
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_PREFERIPADDRESS: "true"
     depends_on:
-      - discovery-server
+      discovery-server:
+        condition: service_started
+      book-db:
+        condition: service_healthy   # wait until Postgres accepts connections
     # no "ports:" -> only reachable inside the Docker network (via the gateway)
 
   user-service:
     build: ./user-service
     container_name: user-service
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_PREFERIPADDRESS: "true"
     depends_on:
-      - discovery-server
+      discovery-server:
+        condition: service_started
+      user-db:
+        condition: service_healthy
 
   order-service:
     build: ./order-service
     container_name: order-service
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_PREFERIPADDRESS: "true"
     depends_on:
-      - discovery-server
-      - book-service
-      - user-service
+      discovery-server:
+        condition: service_started
+      order-db:
+        condition: service_healthy
+      book-service:
+        condition: service_started
+      user-service:
+        condition: service_started
 
   api-gateway:
     build: ./api-gateway
@@ -46,3 +121,11 @@ services:
       EUREKA_INSTANCE_PREFERIPADDRESS: "true"
     depends_on:
       - discovery-server
+
+# Named volumes = where Postgres stores data on your machine.
+# "docker compose down"    -> keeps data
+# "docker compose down -v" -> deletes data
+volumes:
+  book-data:
+  user-data:
+  order-data:
