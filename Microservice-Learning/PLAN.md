@@ -139,11 +139,12 @@ Finish and run each phase before moving to the next. Commit after each phase.
 
 **Concepts:** service independence, database per service, separate ports
 
-### Phase 2 — Inter-service communication (sync)
-- [ ] Create `order-service`
-- [ ] First version: call book/user using `RestClient` with hardcoded URLs
-- [ ] Second version: replace with **OpenFeign** (`@FeignClient`)
-- [ ] Handle errors when a called service returns 404
+### Phase 2 — Inter-service communication (sync) ✅
+- [x] Create `order-service`
+- [x] Call book/user using **OpenFeign** (`@FeignClient` in `client/`) with hardcoded URLs
+- [x] Handle errors when a called service returns 404 (passed through to the caller)
+- [x] Return 503 when a called service is down
+- [x] Unit test for `OrderService` with mocked clients
 
 **Concepts:** synchronous REST calls, DTOs across services, why hardcoded URLs are bad
 
@@ -245,7 +246,7 @@ curl localhost:8080/api/books/1
 ## 7. Concepts Checklist
 
 - [x] Database per service
-- [ ] Synchronous communication (REST / Feign)
+- [x] Synchronous communication (REST / Feign)
 - [ ] Service discovery (Eureka)
 - [ ] Client-side load balancing
 - [ ] API Gateway
