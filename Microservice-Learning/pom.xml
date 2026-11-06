@@ -25,6 +25,8 @@
         <module>order-service</module>
                 <!-- Phase 3 -->
         <module>discovery-server</module>
+        <!-- Phase 4 -->
+        <module>api-gateway</module>
     </modules>
 
     <properties>
